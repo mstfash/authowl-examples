@@ -168,6 +168,24 @@ you switched on:
 
 Turn a method on in the dashboard and it appears — no code change in these apps.
 
+### Two ways to mount all this
+
+| | Embedded components *(what these examples use)* | Hosted account portal |
+| --- | --- | --- |
+| Where it runs | Inside your app, on your domain, in your design | On AuthOwl, at a URL you link to |
+| You write | A route per surface, one component in each | A link |
+| Covers | Everything the SDK exports | Sign in · Sign up · Unauthorized sign-in · User profile · Sign out |
+
+The examples take the embedded path because it keeps users on your domain and exercises more
+of the SDK. If you would rather not own the routes, point people at the portal URLs from
+**Settings → Account portal** instead.
+
+One nuance either way: **password reset and email verification always need a route in your
+app.** Both are landing pages for an emailed link, so the link has to arrive on your origin —
+which is what `resetPasswordUrl` and `verifyEmailUrl` are for. The portal does not cover them.
+`<ResetPassword/>` and `<VerifyEmail/>` do all the work once the browser gets there; see
+[Owl Todo's note](apps/nextjs-todo/README.md#why-reset-password-and-verify-email-exist).
+
 ---
 
 ## Security notes worth copying
