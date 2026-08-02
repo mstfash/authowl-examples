@@ -65,22 +65,34 @@ because the id is never read from the request.
 
 ## Why `/reset-password` and `/verify-email` exist
 
-AuthOwl owns the logic and the UI for both. These routes exist only because each one is the
-landing page for an **emailed link**, and that link has to arrive somewhere on your origin.
-That is exactly what the `resetPasswordUrl` and `verifyEmailUrl` props are for.
+Both are landing pages for an **emailed link**, so the link needs a URL to arrive at. That is
+what the `resetPasswordUrl` and `verifyEmailUrl` props take.
 
-The components are one line each — everything else in those files is the shared `<AuthShell>`
-wrapper, for looks:
+AuthOwl owns all the logic and UI. The components are one line each — the rest of those files
+is the shared `<AuthShell>` wrapper, for looks:
 
 ```tsx
 <ResetPassword redirectTo="/sign-in" />   // reads the ?token= AuthOwl redirected with
 <VerifyEmail   redirectTo="/sign-in" />   // reads the outcome, offers a resend on failure
 ```
 
-They are not optional decoration. Omit `resetPasswordUrl` and the **"Forgot password?" link
-disappears from the sign-in form entirely** — it is gated on the prop — so password reset
-quietly stops being reachable. Omit `verifyEmailUrl` and sign-up sends no `callbackURL`, so
-the confirmation link never returns the user to your app.
+**You do not have to host them.** AuthOwl's hosted account portal serves `/reset-password`
+and `/verify-email` too, mounting those exact components with your project's branding. This
+example mounts them locally for two practical reasons: the portal is opt-in and needs an
+accounts domain configured, so a fork would not run without setup; and its origin is not in
+the SDK's public config, so it cannot be discovered — you would paste another URL into env.
+
+With the portal enabled, delete both directories and point the props at it instead:
+
+```tsx
+<SignIn resetPasswordUrl="https://accounts.yourdomain.com/reset-password" />
+<SignUp verifyEmailUrl="https://accounts.yourdomain.com/verify-email" />
+```
+
+What you cannot do is drop the props. Omit `resetPasswordUrl` and the **"Forgot password?"
+link disappears from the sign-in form entirely** — it is gated on the prop — so password
+reset quietly stops being reachable. Omit `verifyEmailUrl` and sign-up sends no
+`callbackURL`, so the confirmation link never returns the user to your app.
 
 ## Notable details
 

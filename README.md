@@ -174,17 +174,30 @@ Turn a method on in the dashboard and it appears — no code change in these app
 | --- | --- | --- |
 | Where it runs | Inside your app, on your domain, in your design | On AuthOwl, at a URL you link to |
 | You write | A route per surface, one component in each | A link |
-| Covers | Everything the SDK exports | Sign in · Sign up · Unauthorized sign-in · User profile · Sign out |
+| Covers | Everything the SDK exports | Sign in · Sign up · Unauthorized sign-in · **Reset password · Verify email** · User profile · Sign out |
 
-The examples take the embedded path because it keeps users on your domain and exercises more
-of the SDK. If you would rather not own the routes, point people at the portal URLs from
-**Settings → Account portal** instead.
+The portal covers the two emailed-link landing pages too — it mounts the very same
+`<ResetPassword/>` and `<VerifyEmail/>` components, wrapped in your project's branding.
 
-One nuance either way: **password reset and email verification always need a route in your
-app.** Both are landing pages for an emailed link, so the link has to arrive on your origin —
-which is what `resetPasswordUrl` and `verifyEmailUrl` are for. The portal does not cover them.
-`<ResetPassword/>` and `<VerifyEmail/>` do all the work once the browser gets there; see
-[Owl Todo's note](apps/nextjs-todo/README.md#why-reset-password-and-verify-email-exist).
+**So why do the examples mount their own?** Two practical reasons, neither of them "the
+portal can't":
+
+1. The portal is **opt-in** per project and needs an accounts domain configured. An example
+   that depended on it would not run for most people who fork this.
+2. Its origin is not published in the SDK's public config, so an app cannot discover it —
+   you would paste another URL into your env.
+
+If you have the portal enabled, delete `app/reset-password/` and `app/verify-email/` and
+point the props at the portal URLs from **Settings → Account portal** instead:
+
+```tsx
+<SignIn resetPasswordUrl="https://accounts.yourdomain.com/reset-password" />
+<SignUp verifyEmailUrl="https://accounts.yourdomain.com/verify-email" />
+```
+
+Either way the props must be set — see
+[Owl Todo's note](apps/nextjs-todo/README.md#why-reset-password-and-verify-email-exist) for
+what silently breaks if they are not.
 
 ---
 
