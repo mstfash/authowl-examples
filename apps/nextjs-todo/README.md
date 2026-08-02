@@ -65,9 +65,10 @@ because the id is never read from the request.
 
 ## Notable details
 
-- **`proxy.ts`, not `middleware.ts`.** Next.js 16 renamed the file and silently ignores the
-  old name — a leftover `middleware.ts` means your protection quietly stops running. On
-  Next 14/15, rename this file back; the contents are identical.
+- **`proxy.ts`, not `middleware.ts`.** Next.js 16 renamed the file convention. On Next 14/15
+  rename this file back — the contents are identical. On Next 16 the old name still works but
+  logs a deprecation warning, and keeping *both* files is a hard error that stops the dev
+  server from serving at all. Pick one.
 - **Theme without a flash.** The theme is read from a cookie on the server and rendered into
   `<html data-theme>`, so there is no blocking inline script and no hydration mismatch. The
   same value is passed to `<AuthOwlProvider appearance>`, so the AuthOwl components follow

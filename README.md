@@ -234,11 +234,25 @@ the same machine.
 </details>
 
 <details>
-<summary><b>Next.js: my route protection stopped running</b></summary>
+<summary><b>Next.js: <code>middleware.ts</code> vs <code>proxy.ts</code></b></summary>
 
-Next.js 16 renamed `middleware.ts` to `proxy.ts`, and **silently ignores the old name**.
-This repo ships `proxy.ts`. On Next 14/15, rename it back to `middleware.ts` — the contents
-are identical.
+Next.js 16 renamed the file convention from `middleware.ts` to `proxy.ts`. This repo ships
+`proxy.ts`. On Next 14/15, rename it back to `middleware.ts` — the contents are identical.
+
+On Next 16 the old name still works, with a deprecation warning:
+
+```
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+```
+
+Keeping **both** files, however, is a hard error and the dev server will not serve:
+
+```
+Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected.
+Please use "./proxy.ts" only.
+```
+
+So if you rename it, delete the old one. (Verified on Next 16.2.12.)
 </details>
 
 ---
