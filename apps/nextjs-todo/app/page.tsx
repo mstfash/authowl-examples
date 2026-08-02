@@ -1,7 +1,8 @@
 import { UserButton } from '@authowl/react';
-import { displayName, requireSession } from '@/lib/session';
+import { displayName, isConfigured, requireSession } from '@/lib/session';
 import { listTodos } from '@/lib/todos';
 import { OwlMark } from './owl';
+import { SetupNotice } from './setup-notice';
 import { ThemeToggle } from './theme-toggle';
 import { TodoApp } from './todo-app';
 
@@ -17,6 +18,9 @@ function greeting(): string {
 }
 
 export default async function HomePage() {
+  // Fresh clone with no keys yet: explain, don't crash.
+  if (!isConfigured) return <SetupNotice />;
+
   // Three lines is the whole server-side integration: get the session, bounce
   // if there isn't one, and use its user id as the tenant key for your data.
   const session = await requireSession();

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { createAuthRedirectMiddleware } from '@authowl/next/middleware';
 
 /**
@@ -9,12 +10,18 @@ import { createAuthRedirectMiddleware } from '@authowl/next/middleware';
  * of a flash of empty app. A client can forge a cookie with the right name.
  * The real gate is `auth()` inside the page and every server action.
  */
-export default createAuthRedirectMiddleware({
-  publishableKey: process.env.AUTHOWL_PUBLISHABLE_KEY!,
-  loginPath: '/sign-in',
-  // Only the app itself needs a session. /sign-in and /sign-up stay public.
-  protectedPaths: [/^\/$/],
-});
+const publishableKey = process.env.AUTHOWL_PUBLISHABLE_KEY;
+
+export default publishableKey
+  ? createAuthRedirectMiddleware({
+      publishableKey,
+      loginPath: '/sign-in',
+      // Only the app itself needs a session. /sign-in and /sign-up stay public.
+      protectedPaths: [/^\/$/],
+    })
+  : // Not configured yet (fresh clone, no .env.local). Let everything through so
+    // the app can render its setup screen — there is no session to protect.
+    () => NextResponse.next();
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.svg).*)'],
