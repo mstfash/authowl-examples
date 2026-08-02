@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Every example is standalone, so each one installs, typechecks, and builds on
+# its own. No env vars: a missing key must degrade to the setup screen, never
+# break the build.
+jobs:
+  app:
+    name: ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [nextjs-todo, react-blog, convex-board]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  secrets:
+    name: no committed keys
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A public examples repo must never carry a real key. Placeholder-shaped
+      # values in .env.example files are the only allowed matches.
+      - name: Scan for AuthOwl keys
+        run: |
+          if git grep -nIE '\b(sk_(live|test)|pk_live)_[0-9a-f-]{36}_[A-Za-z0-9]{20,}' -- . ':!*.md'; then
+            echo "::error::A secret or live key is committed. Remove it and rotate the key."
+            exit 1
+          fi
+          if git grep -nIE 'pk_test_[0-9a-f-]{36}_[A-Za-z0-9]{20,}' -- . ':!*.md'; then
+            echo "::error::A real test key is committed. Use an empty .env.example instead."
+            exit 1
+          fi
+          echo "Clean."

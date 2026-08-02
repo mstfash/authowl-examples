@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# builds
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# local data written by the example apps at runtime
+.data/
+
+# env — never commit real keys. Only `.env.example` files are tracked.
+.env
+.env.*
+!.env.example
+
+# convex — the local backend cache. `convex/_generated/` IS committed
+# (Convex's own recommendation) so a fresh clone typechecks before you run
+# `npx convex dev`.
+.convex/
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# playwright-mcp scratch output
+.playwright-mcp/
