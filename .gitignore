@@ -13,8 +13,9 @@ out/
 # local data written by the example apps at runtime
 .data/
 
-# env — never commit real keys. Only `.env.example` files are tracked.
+# env - never commit real keys. Only `.env.example` files are tracked.
 .env
+.env.local
 .env.*
 !.env.example
 

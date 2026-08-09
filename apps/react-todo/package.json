@@ -1,22 +1,17 @@
 {
-  "name": "authowl-example-convex-board",
+  "name": "authowl-example-react-todo",
   "version": "1.0.0",
   "private": true,
-  "description": "Owl Board — a realtime Convex kanban board authenticated with @authowl/convex.",
+  "description": "Owl Todo - a browser-only Vite and React SPA authenticated by AuthOwl.",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n convex,web -c yellow,cyan \"npm:dev:convex\" \"npm:dev:web\"",
-    "dev:convex": "convex dev",
-    "dev:web": "vite",
-    "codegen": "convex codegen",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@authowl/convex": "0.1.3",
     "@authowl/react": "0.18.7",
-    "convex": "^1.43.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -25,7 +20,6 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.5",
-    "concurrently": "^9.1.2",
     "typescript": "^5.9.3",
     "vite": "^8.2.0"
   }

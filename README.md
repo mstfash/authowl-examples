@@ -30,8 +30,8 @@ Each one is a real app, not a login screen with a `console.log` behind it.
 
 | App | Stack | The SDK it shows off |
 | --- | --- | --- |
-| **[🦉 Owl Todo](apps/nextjs-todo)** — optimistic todo list with filters, inline edit, and progress | Next.js 16 · App Router | **`@authowl/next`** — `auth()` in Server Components, protected server actions, route redirects |
-| **[✍️ Owl Blog](apps/react-blog)** — public feed, drafts, likes, a tiny editor | Vite · React 19 · Hono API | **`@authowl/core/server`** — your own backend verifying AuthOwl JWTs against the project's JWKS |
+| **[🦉 Owl Todo](apps/react-todo)** - local todo list with filters, inline edit, and progress | Vite · React 19 · browser-only SPA | **`@authowl/react`** - provider, hooks, drop-in auth, and account settings with no app server |
+| **[✍️ Owl Blog](apps/nextjs-blog)** - public feed, drafts, likes, and editor | Next.js 16 · App Router | **`@authowl/next`** - optional `auth()` in a Server Component and protected server actions |
 | **[📋 Owl Board](apps/convex-board)** — shared kanban that syncs live between browsers | Vite · React 19 · Convex | **`@authowl/convex`** — a one-line drop-in replacement for `ConvexProviderWithClerk` |
 
 All three use **`@authowl/react`** for the sign-in UI, and all three ship the same
@@ -49,19 +49,38 @@ Not an excerpt. This is genuinely all of it.
 ### Next.js — `@authowl/next`
 
 ```tsx
-// app/providers.tsx — the client half
-<AuthOwlProvider publishableKey={PUBLISHABLE_KEY} apiUrl={API_URL} appearance={{ theme }}>
+// app/providers.tsx - the client half
+import { createAuthOwlNextFetch } from '@authowl/next/client';
+
+const authOwlFetch = createAuthOwlNextFetch({
+  publishableKey: PUBLISHABLE_KEY,
+  apiUrl: API_URL,
+});
+
+<AuthOwlProvider
+  publishableKey={PUBLISHABLE_KEY}
+  apiUrl={API_URL}
+  fetch={authOwlFetch}
+  appearance={{ theme }}
+>
   {children}
 </AuthOwlProvider>
 ```
 
+```ts
+// app/api/authowl/session/route.ts - the same-origin server bridge
+import { createAuthOwlSessionBridge } from '@authowl/next/server';
+
+export const POST = createAuthOwlSessionBridge();
+```
+
 ```tsx
-// app/page.tsx — the server half
+// app/page.tsx - public data plus an optional server session
 import { auth } from '@authowl/next/server';
 
-const session = await auth();          // null when signed out
-if (!session) redirect('/sign-in');
-const todos = await listTodos(session.user.id);
+const session = await auth();
+const posts = await listPublished();
+const mine = session ? await listByAuthor(session.user.id) : [];
 ```
 
 ```tsx
@@ -69,21 +88,18 @@ const todos = await listTodos(session.user.id);
 <SignIn resetPasswordUrl="/reset-password" onSignedIn={() => router.replace('/')} />
 ```
 
-### Your own backend — `@authowl/core/server`
+### React SPA - `@authowl/react`
 
-```ts
-// browser: ask AuthOwl for a short-lived JWT
-const token = await getToken();
-fetch('/api/posts', { headers: { authorization: `Bearer ${token}` } });
+```tsx
+<AuthOwlProvider publishableKey={pk} apiUrl={apiUrl}>
+  <App />
+</AuthOwlProvider>
 ```
 
-```ts
-// server: verify it against the project's published JWKS — no shared secret,
-// and no round-trip back to AuthOwl on every request
-import { verifyToken } from '@authowl/core/server';
-
-const { sub, claims } = await verifyToken(token, { publishableKey, apiUrl });
-// `sub` is the user id, and you can trust it.
+```tsx
+const { user, isSignedIn } = useUser();
+const key = `authowl-example:todos:${user.id}`;
+localStorage.setItem(key, JSON.stringify(todos));
 ```
 
 ### Convex — `@authowl/convex`
@@ -115,27 +131,26 @@ to the origins you allow-list.
 
 | App | Origin to allow |
 | --- | --- |
-| Owl Todo | `http://localhost:3000` |
-| Owl Blog | `http://localhost:5173` |
+| Owl Todo | `http://localhost:5173` |
+| Owl Blog | `http://localhost:3000` |
 | Owl Board | `http://localhost:5174` |
 
 **3. Run one.**
 
 ```bash
 git clone https://github.com/mstfash/authowl-examples.git
-cd authowl-examples/apps/nextjs-todo
+cd authowl-examples/apps/react-todo
 
 npm install
 cp .env.example .env.local     # paste your key + API URL
-npm run dev                    # → http://localhost:3000
+npm run dev                    # http://localhost:5173
 ```
 
 Forget a value and the app renders a setup screen telling you which one, instead of a stack
 trace.
 
-> **Owl Blog and Owl Board additionally need the project's JWT issuer switched on**
-> (dashboard → **Settings → JWT issuer**). That is what publishes the JWKS their backends
-> verify against. Owl Todo does not need it.
+> **Only Owl Board needs the project's JWT issuer switched on.** Owl Todo uses the browser
+> session, and Owl Blog reads that session on the Next.js server with `auth()`.
 
 Prefer to scaffold from scratch? `npx authowl` logs you in, detects your Next.js or Vite
 app, and wires the same setup transactionally.
@@ -196,7 +211,7 @@ point the props at the portal URLs from **Settings → Account portal** instead:
 ```
 
 Either way the props must be set — see
-[Owl Todo's note](apps/nextjs-todo/README.md#why-reset-password-and-verify-email-exist) for
+[Owl Blog's note](apps/nextjs-blog/README.md#password-reset-and-email-verification) for
 what silently breaks if they are not.
 
 ---
@@ -207,15 +222,17 @@ The examples are written the way production code should be, and each one demonst
 same rule from a different angle:
 
 - **The user id always comes from a verified session**, never from the request body. Owl
-  Todo re-checks `auth()` inside every server action; Owl Blog scopes every query by the
-  `sub` claim; Owl Board reads `ctx.auth.getUserIdentity()` inside each mutation.
-- **Middleware is a UX helper, not a boundary.** `createAuthRedirectMiddleware` only checks
-  whether a cookie is *present*. The real gate is `auth()` in the page.
+  Blog re-checks `auth()` inside every server action; Owl Board reads
+  `ctx.auth.getUserIdentity()` inside each mutation.
+- **A browser-only demo is honest about its boundary.** Owl Todo keeps demo data in
+  per-account local storage; it does not pretend client storage is server authorization.
 - **Ownership checks live on the server.** Owl Blog's "delete" is a query filtered by author
   id, so another user's id simply never matches. Owl Board hides the delete button for cards
   you did not write *and* refuses the mutation.
-- **Session tokens stay in HttpOnly cookies.** `getToken()` mints a separate short-lived JWT
-  for backends; the durable session value never reaches JavaScript.
+- **The SDK adapts to the browser's cookie policy.** It prefers AuthOwl's HttpOnly cookie.
+  When a browser blocks the cross-site cookie, the paired bearer transport keeps the session
+  working; the Next.js example immediately validates and projects that session into its own
+  host-only HttpOnly cookie before server rendering or server actions rely on it.
 
 ---
 
@@ -224,8 +241,8 @@ same rule from a different angle:
 ```
 authowl-examples/
 ├── apps/
-│   ├── nextjs-todo/     # @authowl/next  — App Router, server actions
-│   ├── react-blog/      # @authowl/core  — SPA + your own JWT-verifying API
+│   ├── nextjs-blog/     # @authowl/next - App Router, server actions
+│   ├── react-todo/      # @authowl/react - browser-only Vite SPA
 │   └── convex-board/    # @authowl/convex — realtime, stateless verification
 ├── .github/workflows/   # CI: typecheck + build every app on every push
 └── LICENSE              # MIT — copy anything you like
@@ -250,10 +267,10 @@ form. Usually a wrong `apiUrl`, a key pointing at a deleted project, or a disall
 </details>
 
 <details>
-<summary><b><code>getToken()</code> returns null (Owl Blog, Owl Board)</b></summary>
+<summary><b><code>getToken()</code> returns null (Owl Board)</b></summary>
 
 The project's **JWT issuer** is off. Turn it on in **Settings → JWT issuer** — that is what
-mints the token and publishes the JWKS your backend verifies against.
+mints the token Convex verifies against.
 </details>
 
 <details>
@@ -262,28 +279,6 @@ mints the token and publishes the JWKS your backend verifies against.
 `convex/auth.config.ts` must match your project's `jwtIssuer` block exactly. Copy the issuer
 verbatim: `localhost` and `127.0.0.1` are different JWT issuers even when they resolve to
 the same machine.
-</details>
-
-<details>
-<summary><b>Next.js: <code>middleware.ts</code> vs <code>proxy.ts</code></b></summary>
-
-Next.js 16 renamed the file convention from `middleware.ts` to `proxy.ts`. This repo ships
-`proxy.ts`. On Next 14/15, rename it back to `middleware.ts` — the contents are identical.
-
-On Next 16 the old name still works, with a deprecation warning:
-
-```
-⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
-```
-
-Keeping **both** files, however, is a hard error and the dev server will not serve:
-
-```
-Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected.
-Please use "./proxy.ts" only.
-```
-
-So if you rename it, delete the old one. (Verified on Next 16.2.12.)
 </details>
 
 ---
