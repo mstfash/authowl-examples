@@ -24,7 +24,8 @@ npm run dev                    # http://localhost:3000
 ```
 
 Add `http://localhost:3000` to the project's allowed origins. This example does not require
-the JWT issuer: the server reads the AuthOwl session cookie with `auth()`.
+the JWT issuer: `auth()` reads either AuthOwl's native session cookie or the validated
+app-origin bridge cookie.
 
 ## What to look at
 
@@ -32,6 +33,7 @@ the JWT issuer: the server reads the AuthOwl session cookie with `auth()`.
 | --- | --- |
 | [`app/page.tsx`](app/page.tsx) | Public feed data and the optional session are read in a Server Component |
 | [`app/actions.ts`](app/actions.ts) | Every write re-checks `auth()` and derives the user id on the server |
+| [`app/api/authowl/session/route.ts`](app/api/authowl/session/route.ts) | Validates and projects cross-origin browser sessions into a host-only HttpOnly cookie for server rendering |
 | [`lib/posts.ts`](lib/posts.ts) | File-backed demo store with ownership checks inside update and delete |
 | [`app/providers.tsx`](app/providers.tsx) | Client provider for AuthOwl UI, session hooks, and account settings |
 | [`app/sign-in`](app/sign-in) and [`app/sign-up`](app/sign-up) | App Router auth pages using the drop-in components |

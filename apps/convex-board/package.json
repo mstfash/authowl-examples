@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@authowl/convex": "0.1.3",
-    "@authowl/react": "0.18.6",
+    "@authowl/react": "0.18.7",
     "convex": "^1.43.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

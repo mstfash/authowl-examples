@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, use, useCallback, useState, type ReactNode } from 'react';
+import { createAuthOwlNextFetch } from '@authowl/next/client';
 import { AuthOwlProvider } from '@authowl/react';
 import '@authowl/react/styles.css';
 import { SetupNotice } from './setup-notice';
@@ -14,6 +15,9 @@ import { SetupNotice } from './setup-notice';
 
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_AUTHOWL_PUBLISHABLE_KEY;
 const API_URL = process.env.NEXT_PUBLIC_AUTHOWL_API_URL;
+const AUTHOWL_FETCH = PUBLISHABLE_KEY && API_URL
+  ? createAuthOwlNextFetch({ publishableKey: PUBLISHABLE_KEY, apiUrl: API_URL })
+  : null;
 
 export type Theme = 'light' | 'dark';
 
@@ -40,13 +44,14 @@ export function Providers({ initialTheme, children }: { initialTheme: Theme; chi
     });
   }, []);
 
-  if (!PUBLISHABLE_KEY || !API_URL) return <SetupNotice />;
+  if (!PUBLISHABLE_KEY || !API_URL || !AUTHOWL_FETCH) return <SetupNotice />;
 
   return (
     <ThemeContext value={{ theme, toggleTheme }}>
       <AuthOwlProvider
         publishableKey={PUBLISHABLE_KEY}
         apiUrl={API_URL}
+        fetch={AUTHOWL_FETCH}
         // The drop-in components follow the app's theme and accent.
         appearance={{ theme }}
       >

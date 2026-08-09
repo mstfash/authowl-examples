@@ -49,10 +49,29 @@ Not an excerpt. This is genuinely all of it.
 ### Next.js — `@authowl/next`
 
 ```tsx
-// app/providers.tsx — the client half
-<AuthOwlProvider publishableKey={PUBLISHABLE_KEY} apiUrl={API_URL} appearance={{ theme }}>
+// app/providers.tsx - the client half
+import { createAuthOwlNextFetch } from '@authowl/next/client';
+
+const authOwlFetch = createAuthOwlNextFetch({
+  publishableKey: PUBLISHABLE_KEY,
+  apiUrl: API_URL,
+});
+
+<AuthOwlProvider
+  publishableKey={PUBLISHABLE_KEY}
+  apiUrl={API_URL}
+  fetch={authOwlFetch}
+  appearance={{ theme }}
+>
   {children}
 </AuthOwlProvider>
+```
+
+```ts
+// app/api/authowl/session/route.ts - the same-origin server bridge
+import { createAuthOwlSessionBridge } from '@authowl/next/server';
+
+export const POST = createAuthOwlSessionBridge();
 ```
 
 ```tsx
@@ -210,8 +229,10 @@ same rule from a different angle:
 - **Ownership checks live on the server.** Owl Blog's "delete" is a query filtered by author
   id, so another user's id simply never matches. Owl Board hides the delete button for cards
   you did not write *and* refuses the mutation.
-- **Session tokens stay in HttpOnly cookies.** `getToken()` mints a separate short-lived JWT
-  for backends; the durable session value never reaches JavaScript.
+- **The SDK adapts to the browser's cookie policy.** It prefers AuthOwl's HttpOnly cookie.
+  When a browser blocks the cross-site cookie, the paired bearer transport keeps the session
+  working; the Next.js example immediately validates and projects that session into its own
+  host-only HttpOnly cookie before server rendering or server actions rely on it.
 
 ---
 

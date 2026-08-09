@@ -20,17 +20,3 @@ export async function requireSession(): Promise<NonNullable<Session>> {
   if (!session) redirect('/sign-in');
   return session;
 }
-
-/** The signed-in user's id. Every store read/write is scoped to this value. */
-export async function requireUserId(): Promise<string> {
-  const session = await requireSession();
-  return session.user.id;
-}
-
-/** A friendly display name, falling back through the identifiers AuthOwl may hold. */
-export function displayName(session: NonNullable<Session>): string {
-  const { name, email, phoneNumber } = session.user;
-  if (name?.trim()) return name.trim().split(' ')[0]!;
-  if (email) return email.split('@')[0]!;
-  return phoneNumber ?? 'there';
-}

@@ -87,10 +87,6 @@ export async function listByAuthor(authorId: string): Promise<Post[]> {
   return (await readAll()).filter((post) => post.authorId === authorId).sort(newest);
 }
 
-export async function findPost(id: string): Promise<Post | null> {
-  return (await readAll()).find((post) => post.id === id) ?? null;
-}
-
 export type PostDraft = {
   title: string;
   body: string;
