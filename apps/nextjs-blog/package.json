@@ -1,0 +1,26 @@
+{
+  "name": "authowl-example-nextjs-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Owl Blog - a Next.js App Router blog with AuthOwl-protected server actions.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@authowl/next": "0.2.8",
+    "@authowl/react": "0.18.0",
+    "next": "^16.2.12",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3"
+  }
+}
