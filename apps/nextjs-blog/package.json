@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@authowl/next": "0.2.11",
+    "@authowl/next": "0.2.12",
     "@authowl/react": "0.18.7",
     "next": "^16.2.12",
     "react": "^19.2.0",
