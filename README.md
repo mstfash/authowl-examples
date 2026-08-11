@@ -85,7 +85,7 @@ const mine = session ? await listByAuthor(session.user.id) : [];
 
 ```tsx
 // app/sign-in/[[...sign-in]]/page.tsx — the whole sign-in screen
-<SignIn resetPasswordUrl="/reset-password" onSignedIn={() => router.replace('/')} />
+<SignIn resetPasswordUrl="/reset-password" redirectTo="/" />
 ```
 
 ### React SPA - `@authowl/react`
