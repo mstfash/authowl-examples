@@ -17,6 +17,7 @@ export default async function HomePage() {
 
   return (
     <BlogApp
+      key={viewerId ?? 'anonymous'}
       initialPosts={feed.map((post) => toWire(post, viewerId))}
       initialMine={mine.map((post) => toWire(post, viewerId))}
     />

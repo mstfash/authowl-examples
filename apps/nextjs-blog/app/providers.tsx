@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, use, useCallback, useState, type ReactNode } from 'react';
+import { createContext, use, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { createAuthOwlNextFetch } from '@authowl/next/client';
-import { AuthOwlProvider } from '@authowl/react';
+import { AuthOwlProvider, useUser } from '@authowl/react';
 import '@authowl/react/styles.css';
 import { SetupNotice } from './setup-notice';
 
@@ -30,7 +31,29 @@ export function useTheme() {
   return use(ThemeContext);
 }
 
+function RefreshAfterRedirect({ enabled }: { enabled: boolean }) {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
+  const refreshed = useRef(false);
+
+  useEffect(() => {
+    if (!enabled || !isLoaded || !isSignedIn || refreshed.current) return;
+    refreshed.current = true;
+    // The bridge-aware fetch does not publish this session until the app-origin
+    // HttpOnly cookie exists. Refreshing here makes the Server Component see
+    // that cookie without polling or asking the user to sign in a second time.
+    router.refresh();
+  }, [enabled, isLoaded, isSignedIn, router]);
+
+  return null;
+}
+
 export function Providers({ initialTheme, children }: { initialTheme: Theme; children: ReactNode }) {
+  // Capture this during the destination document's first client render. The
+  // SDK deliberately removes the one-time credential as it redeems it.
+  const [redirectReturn] = useState(
+    () => typeof window !== 'undefined' && window.location.hash.includes('authowl_code'),
+  );
   // The server already rendered <html data-theme> from a cookie, so there is no
   // flash and no hydration mismatch. The toggle just keeps both in sync.
   const [theme, setTheme] = useState<Theme>(initialTheme);
@@ -55,6 +78,7 @@ export function Providers({ initialTheme, children }: { initialTheme: Theme; chi
         // The drop-in components follow the app's theme and accent.
         appearance={{ theme }}
       >
+        <RefreshAfterRedirect enabled={redirectReturn} />
         {children}
       </AuthOwlProvider>
     </ThemeContext>
