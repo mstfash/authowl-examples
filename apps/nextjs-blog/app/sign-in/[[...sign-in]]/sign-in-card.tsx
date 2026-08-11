@@ -8,10 +8,10 @@ export function SignInCard() {
 
   return (
     <SignIn
+      redirectTo="/"
       // Where the "Forgot password?" email should land.
       resetPasswordUrl="/reset-password"
       onSignedIn={() => {
-        router.replace('/');
         // The home page is a Server Component that calls auth() — refresh so it
         // re-renders with the new session instead of a cached signed-out copy.
         router.refresh();
