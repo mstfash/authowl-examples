@@ -12,7 +12,6 @@ export function SignUpCard() {
       // email verification.
       verifyEmailUrl="/verify-email"
       onSignedUp={() => {
-        router.replace('/');
         router.refresh();
       }}
     />
